@@ -236,21 +236,21 @@ export default function Home() {
       }}
     >
       <Lamp />
-      <div className="z-20 absolute inset-x-0 top-0 flex justify-center items-center p-6">
+      <div className="z-20 absolute inset-x-0 top-0 flex justify-center items-center p-6">  
         <div className="flex flex-wrap gap-4 lg:gap-8 lg:text-lg font-medium  items-center">
           <Link href={`https://zxcprime.icu`} target="_blank">
             <div className="flex-1 text-center text-muted-foreground lg:text-base text-sm">
-              zxcprime.icu
+              api.zxcstream.xyz
             </div>
           </Link>
 
           <div className="flex-1 text-center lg:text-xl text-base">
-            zxcstream.xyz
+            player.zxcstream.xyz
           </div>
 
           <Link href={`https://zxcstream.pro`} target="_blank ">
             <div className="flex-1 text-center text-muted-foreground lg:text-base text-sm">
-              zxcstream.pro
+              embed.zxcstream.xyz
             </div>
           </Link>
         </div>
