@@ -1,7 +1,8 @@
 // lib/token.ts  ← single source of truth, change here to rotate
 import crypto from "crypto";
+import { SALT } from "./salt";
 // 🔁 Rotate these constants every few weeks
-const SALT = "v3"; // bump to v4, v5, etc.
+
 const FIELD_MAP = {
   id: "mid", // was: zxczxc
   fToken: "xt", // was: f_token

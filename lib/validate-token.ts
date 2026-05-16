@@ -1,7 +1,7 @@
 import crypto from "crypto";
+import { SALT } from "./salt";
 
 const SECRET = process.env.API_SECRET!;
-const SALT = "v3"; // 🔁 must match token/route.ts
 
 export function validateBackendToken(
   id: string,

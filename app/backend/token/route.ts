@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { ALLOWED_ORIGINS, isValidReferer } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/token";
+import { SALT } from "@/lib/salt";
 
 const SECRET = process.env.API_SECRET!;
-const SALT = "v3";
 
 function validateFrontendToken(xt: string, id: string, rt: number) {
   const expected = crypto
@@ -35,8 +35,6 @@ export async function POST(req: NextRequest) {
   const id = body[FIELD_MAP.id]; // body.mid
   const xt = body[FIELD_MAP.fToken]; // body.xt
   const rt = body[FIELD_MAP.ts]; // body.rt
-
-
 
   const forwardedFor = req.headers.get("x-forwarded-for");
   const ip = forwardedFor?.split(",")[0] || "Unknown";
@@ -72,6 +70,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-   return NextResponse.json(generateBackendToken(xt, id));
+  return NextResponse.json(generateBackendToken(xt, id));
 }
 // Bind HMAC token to IP — so even a stolen token is useless
