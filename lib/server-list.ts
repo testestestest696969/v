@@ -8,7 +8,13 @@ export const initialServers: ServerTypes[] = [
     desc: "Vast Collection",
   },
   {
-    name: "Athena II",
+    name: "Atlas II",
+    server: "atlas_v2",
+    status: "queue",
+    desc: "Alternative",
+  },
+  {
+    name: "Athena IV",
     server: "athena",
     status: "queue",
     desc: "Main Server",
@@ -19,19 +25,13 @@ export const initialServers: ServerTypes[] = [
     status: "queue",
     desc: "Built-In Subtitle",
   },
-  {
-    name: "Thanatos IV",
-    server: "thanatos",
-    status: "queue",
-    desc: "Alternative",
-  },
-  {
-    name: "Atlas",
-    server: "atlas_v2",
-    status: "queue",
-    desc: "Alternative",
-  },
 
+  // {
+  //   name: "Thanatos ",
+  //   server: "thanatos",
+  //   status: "queue",
+  //   desc: "Alternative",
+  // },
   {
     name: "Daedalus V",
     server: "daedalus",
