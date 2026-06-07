@@ -1,26 +1,18 @@
 "use client";
 
-import Script from "next/script";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function DevToolGuard() {
-  const [show, setShow] = useState(false);
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const debug = params.get("debug");
-    if (debug !== "false") {
-      setShow(true);
-    }
+    import("disable-devtool").then((m) =>
+      m.default({
+        disableMenu: true,
+        tkName: "debug", // your custom param name
+        md5: "68934a3e9455fa72420237eb05902327", // md5 of the bypass value
+        url: "https://zxcstream.xyz",
+      }),
+    );
   }, []);
 
-  if (!show) return null;
-
-  return (
-    <Script
-      src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"
-      strategy="afterInteractive"
-      disable-devtool-auto=""
-    />
-  );
+  return null;
 }

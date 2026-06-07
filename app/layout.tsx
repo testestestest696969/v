@@ -64,7 +64,6 @@ export default function RootLayout({
             `,
           }}
         />
-        {isProduction && <DevToolGuard />}
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider
@@ -77,6 +76,7 @@ export default function RootLayout({
             <SandboxGuard>{children}</SandboxGuard>
           </Provider>
         </ThemeProvider>
+        <DevToolGuard />
       </body>
     </html>
   );
