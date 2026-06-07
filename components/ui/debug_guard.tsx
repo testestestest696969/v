@@ -1,14 +1,20 @@
 "use client";
 
 import Script from "next/script";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function DevToolGuard() {
-  const searchParams = useSearchParams();
-  const debug = searchParams.get("debug");
+  const [show, setShow] = useState(false);
 
-  // skip devtool blocker if ?debug=false
-  if (debug === "false") return null;
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get("debug");
+    if (debug !== "false") {
+      setShow(true);
+    }
+  }, []);
+
+  if (!show) return null;
 
   return (
     <Script

@@ -64,11 +64,7 @@ export default function RootLayout({
             `,
           }}
         />
-        {isProduction && (
-          <Suspense fallback={null}>
-            <DevToolGuard />
-          </Suspense>
-        )}
+        {isProduction && <DevToolGuard />}
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider
