@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import Provider from "./provider";
 import Script from "next/script";
 import SandboxGuard from "@/components/ui/sandboxGuard";
+import DevToolGuard from "@/components/ui/debug_guard";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -62,13 +63,7 @@ export default function RootLayout({
             `,
           }}
         />
-        {isProduction && (
-          <Script
-            src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"
-            strategy="beforeInteractive"
-            disable-devtool-auto=""
-          />
-        )}
+        {isProduction && <DevToolGuard />}
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider
