@@ -1,12 +1,6 @@
 import { ServerTypes } from "@/types/player-types";
 
 export const initialServers: ServerTypes[] = [
-  // {
-  //   name: "Thanatos ",
-  //   server: "thanatos",
-  //   status: "queue",
-  //   desc: "Alternative",
-  // },
   {
     name: "Icarus",
     server: "icarus",
@@ -26,7 +20,12 @@ export const initialServers: ServerTypes[] = [
     status: "queue",
     desc: "Built-In Subtitle",
   },
-
+  {
+    name: "Zeus",
+    server: "zeus",
+    status: "queue",
+    desc: "Alternative",
+  },
   {
     name: "Daedalus",
     server: "daedalus",
