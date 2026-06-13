@@ -15,8 +15,8 @@ const WORKER_SECRET = "xk92mZpQ7vLw3nRt";
 const FEBBOX_PLAYER_WORKER = "https://febbox3.jinluxusz.workers.dev";
 // const FEBBOX_PLAYER_WORKER = "https://proxy.jerometecson0.workers.dev";
 const MAX_FILE_SIZE_GB = 60;
-const QUALITY_ORDER = ["1080p", "720p", "360p", "auto", "4k", "480p"];
-// const QUALITY_ORDER = ["360p", "auto"];
+// const QUALITY_ORDER = ["1080p", "720p", "360p", "auto", "4k", "480p"];
+const QUALITY_ORDER = ["360p", "auto"];
 async function dbGet(
   tmdbId: string,
   mediaType: string,
