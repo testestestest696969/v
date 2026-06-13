@@ -256,8 +256,17 @@ const HOLLY_WORKERS = [
   //7 more
 ];
 
-function randomWorker(): string {
-  return HOLLY_WORKERS[Math.floor(Math.random() * HOLLY_WORKERS.length)];
+async function getWorkingWorkerUrl(
+  urls: string[],
+  timeout = 15000,
+): Promise<Response | null> {
+  for (const url of urls) {
+    try {
+      const res = await fetchWithTimeout(url, {}, timeout);
+      if (res.ok) return res;
+    } catch {}
+  }
+  return null;
 }
 
 type Quality = { quality: string; embed_url: string };
@@ -333,6 +342,16 @@ async function dbUpdateSources(
 }
 
 export async function GET(req: NextRequest) {
+  const logRequest = (status: number, reason: string) => {
+    const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
+    const mediaType = req.nextUrl.searchParams.get("b");
+    const season = req.nextUrl.searchParams.get(FIELD_MAP.season);
+    const episode = req.nextUrl.searchParams.get(FIELD_MAP.episode);
+    const extra = mediaType === "tv" ? `/${season}/${episode}` : "";
+    console.log(
+      `[ORION] ${tmdbId}/${mediaType}${extra} | ${status} | ${reason}`,
+    );
+  };
   try {
     const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
     const mediaType = req.nextUrl.searchParams.get("b");
@@ -345,13 +364,15 @@ export async function GET(req: NextRequest) {
     const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
 
     if (!tmdbId || !mediaType || !title || !year || !ts || !token) {
+      logRequest(404, "missing params");
       return NextResponse.json(
         { success: false, error: "need token" },
         { status: 404 },
       );
     }
 
-    if (Date.now() - Number(ts) > 8000) {
+    if (Date.now() - ts > 8000) {
+      logRequest(403, "token expired");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
         { status: 403 },
@@ -359,6 +380,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!validateBackendToken(tmdbId, f_token, ts, token)) {
+      logRequest(403, "invalid token");
       return NextResponse.json(
         { success: false, error: "Invalid token" },
         { status: 403 },
@@ -367,6 +389,7 @@ export async function GET(req: NextRequest) {
 
     const referer = req.headers.get("referer") || "";
     if (!isValidReferer(referer)) {
+      logRequest(403, "invalid referrer");
       return NextResponse.json(
         { success: false, error: "Forbidden" },
         { status: 403 },
@@ -375,7 +398,7 @@ export async function GET(req: NextRequest) {
 
     const cached = await dbGet(tmdbId, mediaType, season, episode);
 
-    let sources: Source[];
+    let sources: Source[] = [];
 
     // ─── CASE 1: Full cache hit (qualities + sources) → skip step 1 & 2 ───────
     if (cached?.sources?.length) {
@@ -389,16 +412,20 @@ export async function GET(req: NextRequest) {
         cached.qualities.find((q) => q.quality === "default") ??
         cached.qualities[0];
 
-      const step2Url = `https://holly-2.${randomWorker()}.workers.dev/?embed_url=${encodeURIComponent(bestQuality.embed_url)}`;
-      const step2Res = await fetchWithTimeout(step2Url, {}, 15000);
-      if (!step2Res.ok) {
+      const step2Res = await getWorkingWorkerUrl(
+        [...HOLLY_WORKERS]
+          .sort(() => Math.random() - 0.5)
+          .map(
+            (w) =>
+              `https://holly-2.${w}.workers.dev/?embed_url=${encodeURIComponent(bestQuality.embed_url)}`,
+          ),
+      );
+
+      if (!step2Res) {
+        logRequest(502, "step 2 failed");
         return NextResponse.json(
-          {
-            success: false,
-            error: "Holly step 2 failed",
-            status: step2Res.status,
-          },
-          { status: step2Res.status },
+          { success: false, error: "Holly step 2 failed" },
+          { status: 502 },
         );
       }
 
@@ -406,6 +433,7 @@ export async function GET(req: NextRequest) {
       sources = step2Data.sources ?? [];
 
       if (!sources.length) {
+        logRequest(404, "no sources from step 2");
         return NextResponse.json(
           { success: false, error: "No sources from Holly step 2" },
           { status: 404 },
@@ -430,23 +458,26 @@ export async function GET(req: NextRequest) {
           ? `${baseSlug}-season-${season}-episode-${episode}`
           : `${baseSlug}-${year}`;
 
-      const step1Url = `https://holly-1.${randomWorker()}.workers.dev/?slug=${encodeURIComponent(hollySlug)}`;
-      const step1Res = await fetchWithTimeout(step1Url, {}, 15000);
-      if (!step1Res.ok) {
+      const step1Res = await getWorkingWorkerUrl(
+        [...HOLLY_WORKERS]
+          .sort(() => Math.random() - 0.5)
+          .map(
+            (w) =>
+              `https://holly-1.${w}.workers.dev/?slug=${encodeURIComponent(hollySlug)}`,
+          ),
+      );
+      if (!step1Res) {
+        logRequest(502, "step 1 failed");
         return NextResponse.json(
-          {
-            success: false,
-            error: "Holly step 1 failed",
-            status: step1Res.status,
-          },
-          { status: step1Res.status },
+          { success: false, error: "Holly step 1 failed" },
+          { status: 502 },
         );
       }
-
       const step1Data = await step1Res.json();
       const qualities: Quality[] = step1Data.qualities ?? [];
 
       if (!qualities.length) {
+        logRequest(404, "no qualities found");
         return NextResponse.json(
           { success: false, error: "No qualities found from Holly" },
           { status: 404 },
@@ -458,23 +489,27 @@ export async function GET(req: NextRequest) {
         qualities.find((q) => q.quality === "default") ??
         qualities[0];
 
-      const step2Url = `https://holly-2.${randomWorker()}.workers.dev/?embed_url=${encodeURIComponent(bestQuality.embed_url)}`;
-      const step2Res = await fetchWithTimeout(step2Url, {}, 15000);
-      if (!step2Res.ok) {
+      // ✅ new
+      const step2Res = await getWorkingWorkerUrl(
+        [...HOLLY_WORKERS]
+          .sort(() => Math.random() - 0.5)
+          .map(
+            (w) =>
+              `https://holly-2.${w}.workers.dev/?embed_url=${encodeURIComponent(bestQuality.embed_url)}`,
+          ),
+      );
+      if (!step2Res) {
+        logRequest(502, "step 2 failed");
         return NextResponse.json(
-          {
-            success: false,
-            error: "Holly step 2 failed",
-            status: step2Res.status,
-          },
-          { status: step2Res.status },
+          { success: false, error: "Holly step 2 failed" },
+          { status: 502 },
         );
       }
-
       const step2Data = await step2Res.json();
       sources = step2Data.sources ?? [];
 
       if (!sources.length) {
+        logRequest(404, "no sources from step 2");
         return NextResponse.json(
           { success: false, error: "No sources from Holly step 2" },
           { status: 404 },
@@ -489,14 +524,19 @@ export async function GET(req: NextRequest) {
 
     // ─── STEP 3: Find first working proxied source ────────────────────────────
     for (const source of sources) {
-      const proxiedUrl = `https://holly-3.${randomWorker()}.workers.dev/?url=${encodeURIComponent(source.file)}`;
-      const res = await fetchWithTimeout(
-        proxiedUrl,
-        { method: "HEAD", headers: { Range: "bytes=0-1" } },
+      const res = await getWorkingWorkerUrl(
+        [...HOLLY_WORKERS]
+          .sort(() => Math.random() - 0.5)
+          .map(
+            (w) =>
+              `https://holly-3.${w}.workers.dev/?url=${encodeURIComponent(source.file)}`,
+          ),
         6000,
-      ).catch(() => null);
+      );
 
-      if (res?.ok) {
+      if (res) {
+        const proxiedUrl = res.url;
+        logRequest(200, "OK!!!!!");
         return NextResponse.json({
           success: true,
           c: !!cached,
@@ -507,7 +547,7 @@ export async function GET(req: NextRequest) {
         });
       }
     }
-
+    logRequest(502, "all sources failed proxy check");
     return NextResponse.json(
       { success: false, error: "All sources failed proxy check" },
       { status: 502 },
