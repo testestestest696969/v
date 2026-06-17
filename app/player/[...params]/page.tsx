@@ -48,12 +48,17 @@ export default function Player() {
   const domain = searchParams.get("domainAd") || "zxcstream.icu";
   const color = searchParams.get("color") || "dc2626";
   const back = searchParams.get("back") === "true";
-  const dubLang = searchParams.get("dubLang");
+  const dubLang =
+    searchParams.get("dubLang") || searchParams.get("dublang") || "";
+
+  const dubType =
+    searchParams.get("dubType") || searchParams.get("dubtype") || "0";
+
   const auto_play = searchParams.get("autoplay") === "true";
   const enableSaveProgress = searchParams.get("save_progress") !== "false"; // default true
   const enableLoadProgress = searchParams.get("load_progress") !== "false"; // default true
   const load = Number(searchParams.get("load")) || undefined; // default undefined
-
+  const dubLangApplied = useRef(false);
   // ─── Local State ─────────────────────────────────────────────────────────────
   const isMobile = useIsMobile();
   const [doubleTapSide, setDoubleTapSide] = useState<"left" | "right" | null>(
@@ -81,8 +86,13 @@ export default function Player() {
   const brightness = useSettingsStore(
     (s) => s.values["Brightness"]?.id ?? "100%",
   );
-  const dub = useSettingsStore((s) => s.values["Audio Dub"]?.id ?? "auto");
-  const dubLangApplied = useRef(false);
+  const dub = useSettingsStore((s) => s.values["Audio Dub"]?.value ?? "");
+  const initialType = useSettingsStore(
+    (s) => s.values["Audio Dub"]?.type ?? "",
+  );
+  // derive after
+  const type = dub === "" ? "" : initialType;
+
   // ─── Servers ─────────────────────────────────────────────────────────────────
   const {
     handleCanPlay,
@@ -153,7 +163,12 @@ export default function Player() {
     poster,
     backdrop,
   ]);
-
+  console.log("🔑 queryKey dub:", {
+    dub: dub,
+    type: type,
+    dubLang: dubLang,
+    dubType: dubType,
+  });
   // ─── Source ──────────────────────────────────────────────────────────────────
   const {
     data: source,
@@ -171,7 +186,8 @@ export default function Player() {
     year,
     date: String(date),
     enable: !allFailed,
-    dub: dubLangApplied.current ? dub : (dubLang ?? dub),
+    dubCode: dub || dubLang,
+    dubType: dub || dubLang ? (dub ? type : dubType) : "",
   });
 
   // ─── Subtitles ───────────────────────────────────────────────────────────────
@@ -259,49 +275,56 @@ export default function Player() {
     }
   }, [source?.links, sourceError]);
 
+  // default dub effect
+  useEffect(() => {
+    if (dubLangApplied.current) return; // skip if dubLang was applied or user picked
+    if (dubLang) return;
+    if (!source?.dubs?.[0]) return;
+    useSettingsStore.getState().setValue("Audio Dub", {
+      display: String(source.dubs[0].name),
+      id: "0",
+      value: "",
+      type: "",
+    });
+  }, [source?.dubs]);
+
   // useEffect(() => {
-  //   if (!source?.active) return;
+  //   dubLangApplied.current = false;
+  //    if (!source?.dubs?.[0]) return;
   //   useSettingsStore.getState().setValue("Audio Dub", {
-  //     display: source.active.langName,
-  //     id: source.active.langCode,
+  //     display: String(source.dubs[0].name),
+  //     id: "0",
+  //     value: "",
+  //     type: "",
   //   });
-  // }, [source?.links]);
+  //   setLoaded(false);
+  // }, [serverIndex]);
 
+  // dubLang effect
   useEffect(() => {
-    dubLangApplied.current = false;
-  }, [dubLang]);
-
-  useEffect(() => {
-    if (!dubLang || dubLangApplied.current) return;
-
-    const mappedDub =
-      source?.dubs?.find((f) => f.lang === dubLang)?.name || "Auto";
-
+    if (!dubLang) return;
+    if (dubLangApplied.current) return;
+    if (!source?.dubs?.length) return;
+    const index = source.dubs.findIndex(
+      (f) => f.lang === dubLang && String(f.type) === dubType,
+    );
+    const matched = index !== -1 ? source.dubs[index] : null;
+    dubLangApplied.current = true;
     useSettingsStore.getState().setValue("Audio Dub", {
-      display: mappedDub,
-      id: mappedDub === "Auto" ? "auto" : dubLang,
+      display: matched?.name ?? source.dubs[0].name, // 👈 fallback to first
+      id: index !== -1 ? String(index) : "0",
+      type: dubType,
+      value: matched?.lang ?? source.dubs[0].lang, // 👈 fallback to first
     });
+  }, [source?.dubs]);
 
-    if (mappedDub !== "Auto") dubLangApplied.current = true;
-  }, [dubLang, source?.dubs]);
-
+  // user manually picks
   useEffect(() => {
-    dubLangApplied.current = false;
-    if (!dubLang) {
-      useSettingsStore.getState().setValue("Audio Dub", {
-        display: "Auto",
-        id: "auto",
-      });
-      return;
-    }
+    if (!dub && !type) return;
+    dubLangApplied.current = true; // 👈 same ref, locks out both effects above
+    handleMarkDub();
+  }, [dub, type]);
 
-    const mappedDub =
-      source?.dubs?.find((f) => f.lang === dubLang)?.name || "Auto";
-    useSettingsStore.getState().setValue("Audio Dub", {
-      display: mappedDub,
-      id: mappedDub === "Auto" ? "auto" : dubLang,
-    });
-  }, [serverIndex]);
   useEffect(() => {
     if (!source?.links?.[0]?.resolution) return;
 
@@ -317,27 +340,6 @@ export default function Player() {
     if (!source?.links) return;
     if (source?.links.length > 0) handleMarkConnecting();
   }, [source?.links]);
-  // useEffect(() => {
-  //   if (sourceLoading || (!source?.links && !sourceError)) return;
-  //   if (sourceError || source?.links.length === 0) {
-  //     queryClient.removeQueries({
-  //       queryKey: [
-  //         "get-source",
-  //         tmdbId,
-  //         media_type,
-  //         season,
-  //         episode,
-  //         imdbId,
-  //         fetchServer.server,
-  //         title,
-  //         year,
-  //       ],
-  //     });
-  //     handleServerFail();
-  //   } else {
-  //     handleMarkConnecting();
-  //   }
-  // }, [source?.links, sourceError, sourceLoading]);
 
   // Effect 2: Handle quality change separately
   useEffect(() => {
@@ -346,19 +348,11 @@ export default function Player() {
   }, [sourceQualityId]);
 
   useEffect(() => {
-    if (!dub) return;
-    handleMarkDub();
-  }, [dub]);
-
-  useEffect(() => {
     if (canNext && state.ended) {
       router.push(`/player/tv/${tmdbId}/${nextSeason}/${nextEpisode}`);
     }
   }, [state.ended]);
 
-  useEffect(() => {
-    setLoaded(false);
-  }, [serverIndex]);
   console.log("sds", servers[serverIndex].status);
   useEffect(() => {
     if (!mergeSubtitles.length) return;

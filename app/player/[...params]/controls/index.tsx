@@ -92,6 +92,8 @@ export default function Settings({
       display: option.display,
       id: option.id,
       file: option.file,
+      type: option.type,
+      value: option.value,
     });
     setActive(null);
   }
@@ -102,10 +104,11 @@ export default function Settings({
       dub:
         dubs.length > 1
           ? [
-              { id: "auto", display: "Auto" },
-              ...dubs.map((q) => ({
-                id: q.lang,
+              ...dubs.map((q, i) => ({
+                id: String(i),
                 display: q.name,
+                value: q.lang,
+                type: String(q.type),
               })),
             ]
           : [],

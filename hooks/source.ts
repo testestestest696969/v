@@ -14,6 +14,7 @@ export interface DubTypes {
   lang: string;
   name: string;
   original: boolean;
+  type: 0 | 1;
 }
 
 export interface SourceTypes {
@@ -38,7 +39,8 @@ interface UseSourceParams {
   year: string;
   date: string;
   quality?: "4k" | null;
-  dub: string;
+  dubCode: string;
+  dubType: string;
   enable: boolean;
 }
 
@@ -56,7 +58,8 @@ export default function useSource(
     year,
     date,
     quality,
-    dub,
+    dubCode,
+    dubType,
     enable,
   } = params;
 
@@ -72,7 +75,8 @@ export default function useSource(
       title,
       year,
       quality,
-      dub,
+      dubCode,
+      dubType,
     ],
     enabled: Boolean(tmdbId && imdbId && server === server) && enable, // ← blocks fetch while scrolling
     retry: false,
@@ -82,6 +86,12 @@ export default function useSource(
     refetchOnReconnect: false,
     refetchIntervalInBackground: false,
     queryFn: async () => {
+      console.log("🚀 queryFn fired with:", {
+        dubCode,
+        dubType,
+        server,
+        tmdbId,
+      });
       // if (server === "thanatos") {
       //   return fetchThanatosSource({
       //     media_type,
@@ -108,7 +118,8 @@ export default function useSource(
         title,
         year,
         date,
-        dub,
+        dubCode,
+        dubType,
         // quality,
         ts,
         sig,
@@ -142,7 +153,9 @@ interface BuildSourceURLParams {
   ts: number;
   sig: string; // was: token
   xt: string; // was: f_token
-  dub: string;
+
+  dubCode: string;
+  dubType: string;
 }
 
 function buildSourceURL({
@@ -157,7 +170,8 @@ function buildSourceURL({
   ts,
   sig,
   xt,
-  dub,
+  dubCode,
+  dubType,
   date,
 }: BuildSourceURLParams) {
   const params = new URLSearchParams({
@@ -175,8 +189,9 @@ function buildSourceURL({
     params.append(FIELD_MAP.season, String(season));
     params.append(FIELD_MAP.episode, String(episode));
   }
-  if (dub) {
-    params.append("dub", dub);
+  if (!!dubCode && !!dubType) {
+    params.append("dubCode", dubCode);
+    params.append("dubType", dubType);
   }
   if (imdbId) {
     params.append(FIELD_MAP.imdbId, imdbId);

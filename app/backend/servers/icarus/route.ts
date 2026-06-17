@@ -548,7 +548,8 @@ export async function GET(req: NextRequest) {
     const ts = Number(req.nextUrl.searchParams.get(FIELD_MAP.ts));
     const token = req.nextUrl.searchParams.get(FIELD_MAP.token)!;
     const f_token = req.nextUrl.searchParams.get(FIELD_MAP.fToken)!;
-    const dubLang = req.nextUrl.searchParams.get("dub");
+    const dubCode = req.nextUrl.searchParams.get("dubCode");
+    const dubType = req.nextUrl.searchParams.get("dubType");
     const date = req.nextUrl.searchParams.get("date");
 
     if (!tmdbId || !mediaType || !title || !date || !ts || !token) {
@@ -649,10 +650,33 @@ export async function GET(req: NextRequest) {
       const queryWords = normalizedTitle!.split(/\s+/).filter(Boolean);
       const dateObj = date ? new Date(date) : null;
 
-      const selectedItem = items.find((item: any) => {
+      // const selectedItem = items.find((item: any) => {
+      //   const itemTitle = item.title?.toLowerCase().replace(/-/g, " ") || "";
+      //   const itemReleaseDate = item.releaseDate;
+      //   if (LANG_TAGS.test(itemTitle)) return false;
+      //   if (!dateObj || !itemReleaseDate) return false;
+      //   const itemDate = new Date(itemReleaseDate);
+      //   const diff =
+      //     itemDate.getFullYear() * 12 +
+      //     itemDate.getMonth() -
+      //     (dateObj.getFullYear() * 12 + dateObj.getMonth());
+      //   if (Math.abs(diff) > 1) return false;
+      //   const itemTitleClean = itemTitle
+      //     .replace(/\bs\d+(-s\d+)?\b/gi, "")
+      //     .trim();
+      //   const itemWordsClean = itemTitleClean.split(/\s+/).filter(Boolean);
+      //   if (
+      //     queryWords.length <= 2 &&
+      //     itemWordsClean.length !== queryWords.length
+      //   )
+      //     return false;
+      //   return queryWords.every((word) => itemTitle.includes(word));
+      // });
+
+      let selectedItem = items.find((item: any) => {
         const itemTitle = item.title?.toLowerCase().replace(/-/g, " ") || "";
         const itemReleaseDate = item.releaseDate;
-        if (LANG_TAGS.test(itemTitle)) return false;
+        if (LANG_TAGS.test(itemTitle)) return false; // skip lang-tagged
         if (!dateObj || !itemReleaseDate) return false;
         const itemDate = new Date(itemReleaseDate);
         const diff =
@@ -672,6 +696,30 @@ export async function GET(req: NextRequest) {
         return queryWords.every((word) => itemTitle.includes(word));
       });
 
+      // Fallback: allow lang-tagged if nothing else matched
+      if (!selectedItem) {
+        selectedItem = items.find((item: any) => {
+          const itemTitle = item.title?.toLowerCase().replace(/-/g, " ") || "";
+          const itemReleaseDate = item.releaseDate;
+          if (!dateObj || !itemReleaseDate) return false;
+          const itemDate = new Date(itemReleaseDate);
+          const diff =
+            itemDate.getFullYear() * 12 +
+            itemDate.getMonth() -
+            (dateObj.getFullYear() * 12 + dateObj.getMonth());
+          if (Math.abs(diff) > 1) return false;
+          const itemTitleClean = itemTitle
+            .replace(/\bs\d+(-s\d+)?\b/gi, "")
+            .trim();
+          const itemWordsClean = itemTitleClean.split(/\s+/).filter(Boolean);
+          if (
+            queryWords.length <= 2 &&
+            itemWordsClean.length !== queryWords.length
+          )
+            return false;
+          return queryWords.every((word) => itemTitle.includes(word));
+        });
+      }
       if (!selectedItem) {
         logRequest(404, "unavailable");
         return NextResponse.json(
@@ -752,9 +800,9 @@ export async function GET(req: NextRequest) {
     let activeDubType: number = original.type ?? 0;
     let activeDubLang: string = original.lanCode ?? "orig";
 
-    if (dubLang) {
+    if (dubCode) {
       const dubEntry = dubs.find(
-        (d: any) => d.type === 0 && d.lanCode === dubLang,
+        (d: any) => d.lanCode === dubCode && d.type === Number(dubType ?? "0"),
       );
       if (dubEntry) {
         subjectId = dubEntry.subjectId;
@@ -914,9 +962,7 @@ export async function GET(req: NextRequest) {
     }));
 
     const activeDub =
-      (dubLang
-        ? dubs.find((d: any) => d.type === 0 && d.lanCode === dubLang)
-        : null) ??
+      (dubCode ? dubs.find((d: any) => d.lanCode === dubCode) : null) ??
       dubs.find((d: any) => d.original === true) ??
       dubs[0];
 
@@ -925,13 +971,19 @@ export async function GET(req: NextRequest) {
       success: true,
       links,
       subtitles,
-      dubs: dubs
-        .filter((d: any) => d.type === 0)
-        .map((d: any) => ({
-          lang: d.lanCode,
-          name: d.lanName.replace(/\b(dub|audio)\b/gi, "").trim(),
-          original: d.original,
-        })),
+      dubs: dubs.map((d: any) => ({
+        lang: d.lanCode,
+        type: d.type,
+        name:
+          d.type === 1
+            ? d.lanName
+                .replace(/\b(dub|audio)\b/gi, "")
+                .trim()
+                .replace(/sub$/i, "")
+                .trim() + " (Subtitle)"
+            : d.lanName.replace(/\b(dub|audio|sub)\b/gi, "").trim(),
+        original: d.original,
+      })),
       meow: !!cached,
       meowmeow: !!cachedDownloads,
       active: {

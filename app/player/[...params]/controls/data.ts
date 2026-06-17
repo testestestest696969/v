@@ -36,12 +36,16 @@ export type SettingsOption = {
   id: string;
   display: string;
   file?: string; // 👈 match MediaOption
+  type?: string;
+  value?: string;
 };
 
 export interface SelectedValue {
   display: string;
   id: string;
   file?: string;
+  type?: string;
+  value?: string;
 }
 
 export type SettingsItem = {
@@ -87,7 +91,7 @@ export const groups: SettingsGroup[] = [
       },
       {
         label: "Audio Dub",
-        value: "Auto",
+        value: "",
         Icon: Languages,
         options: [],
         dynamicKey: "dub",
