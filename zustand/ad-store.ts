@@ -44,3 +44,4 @@ export const useAdStore = create<AdStore>()(
     },
   ),
 );
+// git ls-remote https://github.com/zxctest8/a.git

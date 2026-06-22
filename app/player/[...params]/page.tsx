@@ -454,7 +454,7 @@ export default function Player() {
     <div
       ref={containerRef}
       className="relative h-svh w-full overflow-hidden bg-black"
-      onClick={triggerAd}
+      onClick={color === "305CDE" ? undefined : triggerAd}
     >
       {/* Video */}
       <div className="h-full w-full">
