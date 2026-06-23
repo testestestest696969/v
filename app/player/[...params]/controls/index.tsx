@@ -122,16 +122,15 @@ export default function Settings({
             : (l.format ?? `Source ${i + 1}`),
         })),
       //////////
-      qualities:
-        quality.length > 1
-          ? [
-              { id: "auto", display: "Auto" },
-              ...quality.map((q, i) => ({
-                id: String(i),
-                display: `${q.height}p`,
-              })),
-            ]
-          : [],
+      qualities: [
+        { id: "auto", display: "Auto" },
+        ...(quality?.length > 1
+          ? quality.map((q, i) => ({
+              id: String(i),
+              display: `${q.height}p`,
+            }))
+          : []),
+      ],
       /////////
       audioTracks:
         audioTracks.length > 1
@@ -150,15 +149,17 @@ export default function Settings({
         })),
       ],
       //////
-      sourceQualities:
-        source?.length > 1
+      sourceQualities: [
+        { id: "auto", display: "Auto" },
+        ...(source?.length > 1
           ? source.map((l, i) => ({
               id: String(i),
               display: l.resolution
                 ? `${l.resolution}${l.resolution === 4 ? "K" : "p"}`
                 : (l.format ?? `Source ${i + 1}`),
             }))
-          : [],
+          : []),
+      ],
     };
 
     return groups.map((group) => ({
@@ -177,9 +178,9 @@ export default function Settings({
             : item;
         })
         .filter((item) => {
-          if (item.label === "Source quality")
-            return dynamic.sourceQualities.length > 1;
-          if (item.label === "Quality") return dynamic.qualities.length > 0;
+          // if (item.label === "Source quality")
+          //   return dynamic.sourceQualities.length > 1;
+          // if (item.label === "Quality") return dynamic.qualities.length > 0;
           if (item.label === "Audio track")
             return dynamic.audioTracks.length > 0;
           if (item.label === "Download") return dynamic.downloads.length > 0;

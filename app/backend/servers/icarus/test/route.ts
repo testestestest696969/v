@@ -375,3 +375,62 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+// [
+//   {
+//     type: 0,
+//     lanCode: "en",
+//     lanName: "Original Audio",
+//     original: true,
+//     subjectId: "7451954164072336160",
+//     detailPath: "the-godfather-O7h3JYN1uS8",
+//   },
+//   {
+//     type: 0,
+//     lanCode: "fr",
+//     lanName: "French dub",
+//     original: false,
+//     subjectId: "1876648983540416520",
+//     detailPath: "the-godfather-epHCfKt4De2",
+//   },
+//   {
+//     type: 0,
+//     lanCode: "hi",
+//     lanName: "Hindi dub",
+//     original: false,
+//     subjectId: "2746848304473464152",
+//     detailPath: "the-godfather-2bD2yMQAUg3",
+//   },
+//   {
+//     type: 1,
+//     lanCode: "ru",
+//     lanName: "Russian sub",
+//     original: false,
+//     subjectId: "1031664100805331496",
+//     detailPath: "the-godfather-sUHI3212de1",
+//   },
+//   {
+//     type: 0,
+//     lanCode: "ru",
+//     lanName: "Russian dub",
+//     original: false,
+//     subjectId: "8923466406826592640",
+//     detailPath: "the-godfather-Cbur3dozbDa",
+//   },
+//   {
+//     type: 0,
+//     lanCode: "es",
+//     lanName: "Spanish dub",
+//     original: false,
+//     subjectId: "6276146626118014488",
+//     detailPath: "the-godfather-Gha3WTIOCt7",
+//   },
+//   {
+//     type: 0,
+//     lanCode: "ptbr",
+//     lanName: "ptbr dub",
+//     original: false,
+//     subjectId: "3121450502475631312",
+//     detailPath: "the-godfather-cyUn2y8hAI3",
+//   },
+// ];

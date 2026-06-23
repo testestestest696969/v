@@ -81,7 +81,7 @@ export default function Player() {
   );
   const autoplay = useSettingsStore((s) => s.values["Autoplay"]?.id ?? "on");
   const sourceQualityId = useSettingsStore(
-    (s) => s.values["Source quality"]?.id ?? "0",
+    (s) => s.values["Source quality"]?.id ?? "auto",
   );
   const brightness = useSettingsStore(
     (s) => s.values["Brightness"]?.id ?? "100%",
@@ -199,17 +199,18 @@ export default function Player() {
   const dubs = source?.dubs || [];
   const mergeSubtitles = [...(source?.subtitles || []), ...openSubtitleData];
 
+  const isAuto = sourceQualityId === "auto" ? "0" : sourceQualityId;
   // ─── Video Player ────────────────────────────────────────────────────────────
   const playerSrc =
     servers[serverIndex].status === "connecting" ||
     servers[serverIndex].status === "available"
-      ? (source?.links[Number(sourceQualityId)]?.link ?? null)
+      ? (source?.links[Number(isAuto)]?.link ?? null)
       : null;
 
   // console.log("server index:", serverIndex, " player src=", playerSrc);
 
-  const srcType = source?.links?.[Number(sourceQualityId)]?.type ?? "";
-
+  const srcType = source?.links?.[Number(isAuto)]?.type ?? "";
+  console.log(isAuto, playerSrc, srcType);
   const { videoRef, containerRef, state, controls, quality, audioTracks } =
     useVideoPlayer({
       playerSrc,
@@ -332,7 +333,7 @@ export default function Player() {
       display:
         String(source.links[0].resolution) +
         (source.links[0].resolution === 4 ? "K" : "p"),
-      id: "0",
+      id: "auto",
     });
   }, [source?.links]);
 
@@ -343,9 +344,9 @@ export default function Player() {
 
   // Effect 2: Handle quality change separately
   useEffect(() => {
-    if (!source?.links) return;
+    if (!playerSrc) return;
     handleQualityChange();
-  }, [sourceQualityId]);
+  }, [playerSrc]);
 
   useEffect(() => {
     if (canNext && state.ended) {

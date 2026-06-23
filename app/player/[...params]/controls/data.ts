@@ -84,7 +84,7 @@ export const groups: SettingsGroup[] = [
 
       {
         label: "Source quality",
-        value: "0",
+        value: "auto",
         Icon: Tv,
         options: [],
         dynamicKey: "sourceQualities",

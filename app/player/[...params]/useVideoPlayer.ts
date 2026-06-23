@@ -178,7 +178,7 @@ export function useVideoPlayer({
           const res = level.height;
           useSettingsStore.getState().setValue("Quality", {
             display: `${res}${res === 2160 ? "K" : "p"}`,
-            id: String(data.level),
+            id: "auto",
           });
         }
       });
@@ -430,6 +430,9 @@ export function useVideoPlayer({
     useSettingsStore
       .getState()
       .setValue("Quality", { display: "Auto", id: "auto" });
+    useSettingsStore
+      .getState()
+      .setValue("Source quality", { display: "Auto", id: "auto" });
     useSettingsStore
       .getState()
       .setValue("Audio track", { display: "Default", id: "0" });
