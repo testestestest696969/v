@@ -47,6 +47,9 @@ export default function Player() {
   const defaultServerIndex = Number(searchParams.get("server")) || 0;
   const domain = searchParams.get("domainAd") || "zxcstream.icu";
   const color = searchParams.get("color") || "dc2626";
+
+  const language = searchParams.get("language") || "en-US";
+  const subLang = searchParams.get("subLang") || "english";
   const back = searchParams.get("back") === "true";
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
@@ -117,6 +120,7 @@ export default function Player() {
   const { data: metadata, isError: metadataError } = useMovieById({
     media_type,
     tmdbId,
+    language,
   });
 
   const imdbId = metadata?.external_ids?.imdb_id ?? null;
@@ -355,14 +359,15 @@ export default function Player() {
   }, [state.ended]);
 
   console.log("sds", servers[serverIndex].status);
+
   useEffect(() => {
     if (!mergeSubtitles.length) return;
 
     const exactMatch = [...mergeSubtitles]
       .reverse()
-      .find((s) => s.display.toLowerCase() === "english");
+      .find((s) => s.display.toLowerCase() === subLang);
     const fuzzyMatch = mergeSubtitles.find((s) =>
-      s.display.toLowerCase().includes("english"),
+      s.display.toLowerCase().includes(subLang),
     );
     const chosen = exactMatch ?? fuzzyMatch;
 
