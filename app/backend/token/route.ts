@@ -9,7 +9,7 @@ const SECRET = process.env.API_SECRET!;
 function validateFrontendToken(xt: string, id: string, rt: number) {
   const expected = crypto
     .createHash("sha512")
-    .update(`${SALT}:${rt}:${id}`) // must mirror generateFrontendToken
+    .update(`${rt}:${SALT}:${id}`) // must mirror generateFrontendToken
     .digest("hex")
     .slice(0, 64);
 

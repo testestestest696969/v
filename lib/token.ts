@@ -15,7 +15,6 @@ const FIELD_MAP = {
   imdbId: "564745ygtuy5yi75yuy", // was: e
 } as const;
 
-
 export { FIELD_MAP };
 
 export function generateFrontendToken(id: string) {
@@ -23,7 +22,7 @@ export function generateFrontendToken(id: string) {
   // 🔁 Rotate: swap order, add SALT, change hash algo to sha512 truncated
   const xt = crypto
     .createHash("sha512")
-    .update(`${SALT}:${rt}:${id}`) // was: `${id}:${ts}`
+    .update(`${rt}:${SALT}:${id}`) // was: `${id}:${ts}`
     .digest("hex")
     .slice(0, 64); // truncate to 64 chars
 
