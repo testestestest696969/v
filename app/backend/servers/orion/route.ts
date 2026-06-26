@@ -239,8 +239,12 @@ const supabase = createClient(
 //https://holly-1.test13-ab8.workers.dev/ https://holly-1.test16-011.workers.dev/ https://holly-1.test20-5b4.workers.dev/
 //https://holly-1.test23-515.workers.dev/ https://holly-1.test21-0af.workers.dev/ https://holly-1.test22-f82.workers.dev/
 //https://holly-1.test27-15e.workers.dev/ https://holly-1.test24-6ad.workers.dev/ https://holly-1.test25-30d.workers.dev/
-//https://holly-1.test26-ee5.workers.dev/
+//https://holly-1.test26-ee5.workers.dev/ https://holly-1.test60-598.workers.dev/ https://holly-1.test29-be6.workers.dev/
+//https://holly-1.test28-f24.workers.dev/
 const HOLLY_WORKERS = [
+  "test60-598",
+  "test29-be6",
+  "test28-f24",
   "test27-15e",
   "test26-ee5",
   "test25-30d",
