@@ -199,9 +199,11 @@ export default function Player() {
 
   const { data: introData } = useIntro({
     imdbId,
+    tmdbId,
     season,
     episode,
     enabled: media_type === "tv",
+    
   });
 
   // ─── Subtitles ───────────────────────────────────────────────────────────────
