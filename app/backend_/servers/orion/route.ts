@@ -316,7 +316,18 @@ const HOLLY_WORKERS = [
 ];
 
 //https://holly-3.test86-374.workers.dev/  https://holly-3.test87-466.workers.dev/ https://holly-3.test88-779.workers.dev/ https://holly-3.test85-3d8.workers.dev/
-const HOLLY_PROXIES = ["test86-374", "test87-466", "test88-779", "test85-3d8"];
+
+//https://holly-3.test92-0aa.workers.dev/ https://holly-3.test90-187.workers.dev/ https://holly-3.test89-84b.workers.dev/ https://holly-3.test91-055.workers.dev/
+const HOLLY_PROXIES = [
+  "test91-055",
+  "test89-84b",
+  "test90-187",
+  "test86-374",
+  "test87-466",
+  "test88-779",
+  "test85-3d8",
+  "test92-0aa",
+];
 async function getWorkingWorkerUrl(
   urls: string[],
   timeout = 15000,
